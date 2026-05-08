@@ -1,0 +1,35 @@
+{
+	"/": [
+		"src/routes/+page.server.ts"
+	],
+	"/dashboard": [
+		"src/routes/dashboard/+page.server.ts"
+	],
+	"/dashboard/cetak": [
+		"src/routes/dashboard/cetak/+server.ts"
+	],
+	"/dashboard/pengaturan": [
+		"src/routes/dashboard/pengaturan/+page.server.ts"
+	],
+	"/dashboard/pilih-kelas": [
+		"src/routes/dashboard/pilih-kelas/+page.server.ts"
+	],
+	"/dashboard/siswa": [
+		"src/routes/dashboard/siswa/+page.server.ts"
+	],
+	"/dashboard/siswa/edit/[nisn]": [
+		"src/routes/dashboard/siswa/edit/[nisn]/+page.server.ts"
+	],
+	"/dashboard/upload-excel": [
+		"src/routes/dashboard/upload-excel/+page.server.ts"
+	],
+	"/dashboard/upload-foto": [
+		"src/routes/dashboard/upload-foto/+page.server.ts"
+	],
+	"/logout": [
+		"src/routes/logout/+page.server.ts"
+	],
+	"/siswa": [
+		"src/routes/siswa/+page.server.ts"
+	]
+}
