@@ -15,9 +15,9 @@ function tanggalIndonesia(tanggal: string) {
     return `${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-async function generateBarcode(text: string): Promise<Buffer | null> {
+async function generateBarcode(text: string): Promise<string | null> {
     try {
-        return await bwipjs.toBuffer({
+        return await bwipjs.toSVG({
             bcid: 'code128',
             text: text,
             scale: 3,
@@ -103,10 +103,9 @@ export const GET: RequestHandler = async ({ url, locals }) => {
             doc.text(`JK : ${student.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'}`, x + 25, y + 28);
 
             // Barcode
-            const barcodeBuffer = await generateBarcode(student.nisn as string);
-            if (barcodeBuffer) {
-                const barcodeBase64 = barcodeBuffer.toString('base64');
-                doc.addImage(barcodeBase64, 'PNG', x + 13, y + 38, 60, 8);
+            const barcodeSvg = await generateBarcode(student.nisn as string);
+            if (barcodeSvg) {
+                doc.addSvg(barcodeSvg, x + 13, y + 38, 60, 8);
             }
             doc.text(student.nisn as string, x + 43, y + 49, { align: 'center' });
 
