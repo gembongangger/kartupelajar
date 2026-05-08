@@ -16,14 +16,15 @@ export const handle: Handle = async ({ event, resolve }) => {
             const user = result.rows[0];
             if (user) {
                 event.locals.user = {
-                    id: user.id as number,
-                    username: user.username as string,
-                    role: user.role as string
+                    id: Number(user.id),
+                    username: String(user.username),
+                    role: String(user.role)
                 };
             } else {
                 event.locals.user = null;
             }
         } catch (e) {
+            console.error('Hooks Error:', e);
             event.locals.user = null;
         }
     }

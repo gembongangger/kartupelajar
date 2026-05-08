@@ -15,6 +15,11 @@ export const load = async ({ locals }: Parameters<PageServerLoad>[0]) => {
         args: [locals.user.id]
     });
     const siswa = result.rows[0];
+    
+    if (!siswa) {
+        throw redirect(302, '/');
+    }
+
     return { siswa };
 };
 
@@ -23,11 +28,11 @@ export const actions = {
         if (!locals.user) return fail(401);
 
         const data = await request.formData();
-        const nama = data.get('nama');
-        const jk = data.get('jk');
-        const tempat = data.get('tempat');
-        const tgl = data.get('tgl');
-        const kelas = data.get('kelas');
+        const nama = data.get('nama')?.toString() || '';
+        const jk = data.get('jk')?.toString() || '';
+        const tempat = data.get('tempat')?.toString() || '';
+        const tgl = data.get('tgl')?.toString() || '';
+        const kelas = data.get('kelas')?.toString() || '';
 
         await db.execute({
             sql: `UPDATE siswa SET 
@@ -38,11 +43,11 @@ export const actions = {
                 kelas = ?
                 WHERE user_id = ?`,
             args: [
-                nama?.toString(), 
-                jk?.toString(), 
-                tempat?.toString(), 
-                tgl?.toString(), 
-                kelas?.toString(), 
+                nama, 
+                jk, 
+                tempat, 
+                tgl, 
+                kelas, 
                 locals.user.id
             ]
         });
@@ -56,7 +61,7 @@ export const actions = {
         const file = data.get('foto') as File;
 
         if (!file || file.size === 0) {
-            return fail(400, { message: 'No file uploaded' });
+            return fail(400, { message: 'File tidak ditemukan' });
         }
 
         const result = await db.execute({
@@ -65,6 +70,8 @@ export const actions = {
         });
         const siswa = result.rows[0];
         
+        if (!siswa) return fail(404, { message: 'Data siswa tidak ditemukan' });
+
         const buffer = Buffer.from(await file.arrayBuffer());
         const filePath = path.join('static', 'foto', `${siswa.nisn}.jpg`);
         
