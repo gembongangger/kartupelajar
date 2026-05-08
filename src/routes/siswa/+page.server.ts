@@ -1,8 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import db from '$lib/server/db';
-import fs from 'fs';
-import path from 'path';
+import { fileToBlobValue } from '$lib/server/photo';
 
 export const load: PageServerLoad = async ({ locals }) => {
     if (!locals.user || locals.user.role !== 'siswa') {
@@ -72,9 +71,10 @@ export const actions: Actions = {
         if (!siswa) return fail(404, { message: 'Data siswa tidak ditemukan' });
 
         const buffer = Buffer.from(await file.arrayBuffer());
-        const filePath = path.join('static', 'foto', `${siswa.nisn}.jpg`);
-        
-        fs.writeFileSync(filePath, buffer);
+        await db.execute({
+            sql: 'UPDATE siswa SET foto = ? WHERE nisn = ?',
+            args: [fileToBlobValue(buffer), siswa.nisn]
+        });
 
         return { success: true };
     }

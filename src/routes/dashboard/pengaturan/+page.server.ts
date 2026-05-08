@@ -1,16 +1,29 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import db from '$lib/server/db';
-import fs from 'fs';
-import path from 'path';
 import crypto from 'crypto';
+import { fileToBlobValue, imageMimeFromFile } from '$lib/server/photo';
 
 export const load: PageServerLoad = async ({ locals }) => {
     if (!locals.user || locals.user.role !== 'admin') {
         throw redirect(302, '/');
     }
 
-    const result = await db.execute('SELECT * FROM pengaturan WHERE id = 1');
+    const result = await db.execute(`
+        SELECT
+            id,
+            nama_sekolah,
+            alamat,
+            kepala_sekolah,
+            nip_kepala_sekolah,
+            tanggal_ttd,
+            logo IS NOT NULL AS has_logo,
+            tanda_tangan IS NOT NULL AS has_tanda_tangan,
+            background IS NOT NULL AS has_background,
+            background_belakang IS NOT NULL AS has_background_belakang
+        FROM pengaturan
+        WHERE id = 1
+    `);
     const pengaturan = result.rows[0];
     return { pengaturan };
 };
@@ -50,37 +63,22 @@ export const actions: Actions = {
             });
         }
 
-        const currentSettingsResult = await db.execute('SELECT * FROM pengaturan WHERE id = 1');
-        const pengaturan = currentSettingsResult.rows[0];
-        let logo = pengaturan.logo as string;
-        let ttd = pengaturan.tanda_tangan as string;
-        let bg = pengaturan.background as string;
-        let bg2 = pengaturan.background_belakang as string;
-
-        const uploadFile = async (file: File, folder: string, prefix: string) => {
-            if (file && file.size > 0) {
-                const ext = path.extname(file.name);
-                const filename = `${prefix}_${Date.now()}${ext}`;
-                const buffer = Buffer.from(await file.arrayBuffer());
-                const filePath = path.join('static', 'assets', folder, filename);
-                fs.mkdirSync(path.dirname(filePath), { recursive: true });
-                fs.writeFileSync(filePath, buffer);
-                return filename;
+        const uploadFile = async (file: File) => {
+            if (!file || file.size === 0) {
+                return null;
             }
-            return null;
+
+            const buffer = Buffer.from(await file.arrayBuffer());
+            return {
+                blob: fileToBlobValue(buffer),
+                mime: imageMimeFromFile(file)
+            };
         };
 
-        const newLogo = await uploadFile(data.get('logo') as File, 'logo', 'logo');
-        if (newLogo) logo = newLogo;
-
-        const newTtd = await uploadFile(data.get('tanda_tangan') as File, 'tanda_tangan', 'ttd');
-        if (newTtd) ttd = newTtd;
-
-        const newBg = await uploadFile(data.get('background') as File, 'background', 'bg');
-        if (newBg) bg = newBg;
-
-        const newBg2 = await uploadFile(data.get('background_belakang') as File, 'background_belakang', 'bg2');
-        if (newBg2) bg2 = newBg2;
+        const newLogo = await uploadFile(data.get('logo') as File);
+        const newTtd = await uploadFile(data.get('tanda_tangan') as File);
+        const newBg = await uploadFile(data.get('background') as File);
+        const newBg2 = await uploadFile(data.get('background_belakang') as File);
 
         await db.execute({
             sql: `UPDATE pengaturan SET
@@ -89,12 +87,30 @@ export const actions: Actions = {
                 kepala_sekolah = ?,
                 nip_kepala_sekolah = ?,
                 tanggal_ttd = ?,
-                logo = ?,
-                tanda_tangan = ?,
-                background = ?,
-                background_belakang = ?
+                logo = COALESCE(?, logo),
+                logo_mime = COALESCE(?, logo_mime),
+                tanda_tangan = COALESCE(?, tanda_tangan),
+                tanda_tangan_mime = COALESCE(?, tanda_tangan_mime),
+                background = COALESCE(?, background),
+                background_mime = COALESCE(?, background_mime),
+                background_belakang = COALESCE(?, background_belakang),
+                background_belakang_mime = COALESCE(?, background_belakang_mime)
                 WHERE id = 1`,
-            args: [nama?.toString(), alamat?.toString(), kepala?.toString(), nip_kepala?.toString(), tanggal?.toString(), logo, ttd, bg, bg2]
+            args: [
+                nama?.toString(),
+                alamat?.toString(),
+                kepala?.toString(),
+                nip_kepala?.toString(),
+                tanggal?.toString(),
+                newLogo?.blob ?? null,
+                newLogo?.mime ?? null,
+                newTtd?.blob ?? null,
+                newTtd?.mime ?? null,
+                newBg?.blob ?? null,
+                newBg?.mime ?? null,
+                newBg2?.blob ?? null,
+                newBg2?.mime ?? null
+            ]
         });
 
         return { success: true };

@@ -14,7 +14,18 @@ export const load = async ({ locals }: Parameters<PageServerLoad>[0]) => {
     }
 
     try {
-        const result = await db.execute('SELECT * FROM pengaturan LIMIT 1');
+        const result = await db.execute(`
+            SELECT
+                id,
+                nama_sekolah,
+                alamat,
+                kepala_sekolah,
+                nip_kepala_sekolah,
+                tanggal_ttd,
+                logo IS NOT NULL AS has_logo
+            FROM pengaturan
+            LIMIT 1
+        `);
         const pengaturan = result.rows[0];
         return { pengaturan };
     } catch (e) {

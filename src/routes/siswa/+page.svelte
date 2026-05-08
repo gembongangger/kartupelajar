@@ -1,7 +1,7 @@
 <script lang="ts">
     import { enhance } from '$app/forms';
     let { data } = $props();
-    const { siswa } = data;
+    let siswa = $derived(data.siswa);
 </script>
 
 <style>
@@ -92,35 +92,35 @@
     <h2>Profil Siswa</h2>
 
     <form method="POST" action="?/update" use:enhance>
-        <label>Nama Lengkap</label>
-        <input type="text" name="nama" value={siswa.nama} required>
+        <label for="nama">Nama Lengkap</label>
+        <input type="text" name="nama" id="nama" value={siswa.nama} required>
 
-        <label>Jenis Kelamin</label>
-        <select name="jk" value={siswa.jenis_kelamin} required>
+        <label for="jk">Jenis Kelamin</label>
+        <select name="jk" id="jk" value={siswa.jenis_kelamin} required>
             <option value="L">Laki-laki</option>
             <option value="P">Perempuan</option>
         </select>
 
-        <label>Tempat Lahir</label>
-        <input type="text" name="tempat" value={siswa.tempat_lahir}>
+        <label for="tempat">Tempat Lahir</label>
+        <input type="text" name="tempat" id="tempat" value={siswa.tempat_lahir}>
 
-        <label>Tanggal Lahir</label>
-        <input type="date" name="tgl" value={siswa.tanggal_lahir}>
+        <label for="tgl">Tanggal Lahir</label>
+        <input type="date" name="tgl" id="tgl" value={siswa.tanggal_lahir}>
 
-        <label>Kelas</label>
-        <input type="text" name="kelas" value={siswa.kelas} required>
+        <label for="kelas">Kelas</label>
+        <input type="text" name="kelas" id="kelas" value={siswa.kelas} required>
 
         <button type="submit">Simpan Perubahan</button>
     </form>
 
     <h3>Foto Siswa</h3>
     {#if siswa.nisn}
-        <img src="/foto/{siswa.nisn}.jpg?t={Date.now()}" alt="Foto Siswa" on:error={(e) => e.currentTarget.style.display = 'none'}>
+        <img src="/foto/{siswa.nisn}.jpg?t={Date.now()}" alt="Foto Siswa">
     {/if}
 
     <form method="POST" action="?/upload_foto" enctype="multipart/form-data" use:enhance>
-        <label>Ganti Foto (JPG)</label>
-        <input type="file" name="foto" accept=".jpg" required>
+        <label for="foto">Ganti Foto (JPG)</label>
+        <input type="file" name="foto" id="foto" accept=".jpg" required>
         <button type="submit">Upload Foto</button>
     </form>
 

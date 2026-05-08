@@ -3,8 +3,7 @@ import type { RequestHandler } from './$types';
 import db from '$lib/server/db';
 import { jsPDF } from 'jspdf';
 import bwipjs from 'bwip-js';
-import fs from 'fs';
-import path from 'path';
+import { getDefaultPhotoBuffer, imageFormatFromBuffer, photoValueToBuffer } from '$lib/server/photo';
 
 function tanggalIndonesia(tanggal: string) {
     if (!tanggal || tanggal === '0000-00-00') return '-';
@@ -71,19 +70,18 @@ export const GET: RequestHandler = async ({ url, locals }) => {
         doc.rect(x, y, 86, 54);
         
         // Background Depan
-        const bgPath = path.join('static', 'assets', 'background', pengaturan.background as string);
-        if (fs.existsSync(bgPath)) {
-            const bgData = fs.readFileSync(bgPath).toString('base64');
-            doc.addImage(bgData, 'JPEG', x, y, 86, 54);
+        const bgBuffer = photoValueToBuffer(pengaturan.background);
+        if (bgBuffer) {
+            const bgFormat = imageFormatFromBuffer(bgBuffer);
+            if (bgFormat) {
+                doc.addImage(bgBuffer.toString('base64'), bgFormat, x, y, 86, 54);
+            }
         }
 
         // Foto Siswa
-        let fotoPath = path.join('static', 'foto', `${student.nisn}.jpg`);
-        if (!fs.existsSync(fotoPath)) {
-            fotoPath = path.join('static', 'foto', 'default.jpg');
-        }
-        if (fs.existsSync(fotoPath)) {
-            const fotoData = fs.readFileSync(fotoPath).toString('base64');
+        const fotoBuffer = photoValueToBuffer(student.foto) || getDefaultPhotoBuffer();
+        if (fotoBuffer) {
+            const fotoData = fotoBuffer.toString('base64');
             doc.addImage(fotoData, 'JPEG', x + 4, y + 12, 18, 22);
         }
 
@@ -108,10 +106,12 @@ export const GET: RequestHandler = async ({ url, locals }) => {
         const xBack = x + 90;
         doc.rect(xBack, y, 86, 54);
         
-        const bgBackPath = path.join('static', 'assets', 'background_belakang', pengaturan.background_belakang as string);
-        if (fs.existsSync(bgBackPath)) {
-            const bgBackData = fs.readFileSync(bgBackPath).toString('base64');
-            doc.addImage(bgBackData, 'JPEG', xBack, y, 86, 54);
+        const bgBackBuffer = photoValueToBuffer(pengaturan.background_belakang);
+        if (bgBackBuffer) {
+            const bgBackFormat = imageFormatFromBuffer(bgBackBuffer);
+            if (bgBackFormat) {
+                doc.addImage(bgBackBuffer.toString('base64'), bgBackFormat, xBack, y, 86, 54);
+            }
         }
 
         doc.setFontSize(7);
@@ -122,10 +122,12 @@ export const GET: RequestHandler = async ({ url, locals }) => {
         doc.text(`Ditetapkan di: ......, ${tanggalIndonesia(pengaturan.tanggal_ttd as string)}`, xBack + 62, y + 36, { align: 'center' });
         doc.text('Kepala Sekolah,', xBack + 62, y + 40, { align: 'center' });
 
-        const ttdPath = path.join('static', 'assets', 'tanda_tangan', pengaturan.tanda_tangan as string);
-        if (fs.existsSync(ttdPath)) {
-            const ttdData = fs.readFileSync(ttdPath).toString('base64');
-            doc.addImage(ttdData, 'PNG', xBack + 52, y + 42, 20, 8);
+        const ttdBuffer = photoValueToBuffer(pengaturan.tanda_tangan);
+        if (ttdBuffer) {
+            const ttdFormat = imageFormatFromBuffer(ttdBuffer);
+            if (ttdFormat) {
+                doc.addImage(ttdBuffer.toString('base64'), ttdFormat, xBack + 52, y + 42, 20, 8);
+            }
         }
 
         doc.setFont('helvetica', 'bold');

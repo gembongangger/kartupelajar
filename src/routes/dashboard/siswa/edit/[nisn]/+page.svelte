@@ -1,7 +1,7 @@
 <script lang="ts">
     import { enhance } from '$app/forms';
     let { data } = $props();
-    const { student } = data;
+    let student = $derived(data.student);
 </script>
 
 <style>
@@ -16,26 +16,26 @@
 <div class="edit-body">
     <h2>Edit Data Siswa</h2>
     <form method="POST" use:enhance>
-        <label>Nama Lengkap</label>
-        <input type="text" name="nama" value={student.nama} required>
+        <label for="nama">Nama Lengkap</label>
+        <input type="text" name="nama" id="nama" value={student.nama} required>
 
-        <label>NIS</label>
-        <input type="text" name="nis" value={student.nis} required>
+        <label for="nis">NIS</label>
+        <input type="text" name="nis" id="nis" value={student.nis} required>
 
-        <label>Kelas</label>
-        <input type="text" name="kelas" value={student.kelas} required>
+        <label for="kelas">Kelas</label>
+        <input type="text" name="kelas" id="kelas" value={student.kelas} required>
 
-        <label>Jenis Kelamin</label>
-        <select name="jk" value={student.jenis_kelamin} required>
+        <label for="jk">Jenis Kelamin</label>
+        <select name="jk" id="jk" value={student.jenis_kelamin} required>
             <option value="L">Laki-laki</option>
             <option value="P">Perempuan</option>
         </select>
 
-        <label>Tempat Lahir</label>
-        <input type="text" name="tempat" value={student.tempat_lahir}>
+        <label for="tempat">Tempat Lahir</label>
+        <input type="text" name="tempat" id="tempat" value={student.tempat_lahir}>
 
-        <label>Tanggal Lahir</label>
-        <input type="date" name="tgl" value={student.tanggal_lahir}>
+        <label for="tgl">Tanggal Lahir</label>
+        <input type="date" name="tgl" id="tgl" value={student.tanggal_lahir}>
 
         <button type="submit">Simpan Perubahan</button>
     </form>

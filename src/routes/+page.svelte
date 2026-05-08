@@ -2,8 +2,8 @@
     import { enhance } from '$app/forms';
     let { data, form } = $props();
 
-    const { pengaturan } = data;
-    const logo_path = pengaturan?.logo ? `/assets/logo/${pengaturan.logo}` : null;
+    let pengaturan = $derived(data.pengaturan);
+    let logo_path = $derived(pengaturan?.has_logo ? '/pengaturan/gambar/logo' : null);
 </script>
 
 <style>

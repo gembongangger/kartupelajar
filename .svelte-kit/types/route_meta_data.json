@@ -26,8 +26,14 @@
 	"/dashboard/upload-foto": [
 		"src/routes/dashboard/upload-foto/+page.server.ts"
 	],
+	"/foto/[nisn].jpg": [
+		"src/routes/foto/[nisn].jpg/+server.ts"
+	],
 	"/logout": [
 		"src/routes/logout/+page.server.ts"
+	],
+	"/pengaturan/gambar/[jenis]": [
+		"src/routes/pengaturan/gambar/[jenis]/+server.ts"
 	],
 	"/siswa": [
 		"src/routes/siswa/+page.server.ts"

@@ -1,12 +1,17 @@
 <script lang="ts">
     import { enhance } from '$app/forms';
     let { data, form } = $props();
-    const { pengaturan } = data;
+    let pengaturan = $derived(data.pengaturan);
 
-    let logoPreview = $state(pengaturan.logo ? `/assets/logo/${pengaturan.logo}` : '');
-    let ttdPreview = $state(pengaturan.tanda_tangan ? `/assets/tanda_tangan/${pengaturan.tanda_tangan}` : '');
-    let bgPreview = $state(pengaturan.background ? `/assets/background/${pengaturan.background}` : '');
-    let bg2Preview = $state(pengaturan.background_belakang ? `/assets/background_belakang/${pengaturan.background_belakang}` : '');
+    let logoPreviewOverride = $state('');
+    let ttdPreviewOverride = $state('');
+    let bgPreviewOverride = $state('');
+    let bg2PreviewOverride = $state('');
+
+    let logoPreview = $derived(logoPreviewOverride || (pengaturan.has_logo ? '/pengaturan/gambar/logo' : ''));
+    let ttdPreview = $derived(ttdPreviewOverride || (pengaturan.has_tanda_tangan ? '/pengaturan/gambar/tanda_tangan' : ''));
+    let bgPreview = $derived(bgPreviewOverride || (pengaturan.has_background ? '/pengaturan/gambar/background' : ''));
+    let bg2Preview = $derived(bg2PreviewOverride || (pengaturan.has_background_belakang ? '/pengaturan/gambar/background_belakang' : ''));
 
     function handlePreview(event: Event, type: string) {
         const input = event.target as HTMLInputElement;
@@ -15,10 +20,10 @@
             const reader = new FileReader();
             reader.onload = (e) => {
                 const result = e.target?.result as string;
-                if (type === 'logo') logoPreview = result;
-                if (type === 'ttd') ttdPreview = result;
-                if (type === 'bg') bgPreview = result;
-                if (type === 'bg2') bg2Preview = result;
+                if (type === 'logo') logoPreviewOverride = result;
+                if (type === 'ttd') ttdPreviewOverride = result;
+                if (type === 'bg') bgPreviewOverride = result;
+                if (type === 'bg2') bg2PreviewOverride = result;
             };
             reader.readAsDataURL(file);
         }

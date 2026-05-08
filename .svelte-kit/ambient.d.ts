@@ -38,11 +38,11 @@
  * The above values will be the same _even if_ different values for `ENVIRONMENT` or `PUBLIC_BASE_URL` are set at runtime, as they are statically replaced in your code with their build time values.
  */
 declare module '$env/static/private' {
+	export const TURSO_AUTH_TOKEN: string;
 	export const TURSO_CONNECTION_URL: string;
 	export const SHELL: string;
 	export const npm_command: string;
 	export const SESSION_MANAGER: string;
-	export const WINDOWID: string;
 	export const npm_config_userconfig: string;
 	export const COLORTERM: string;
 	export const XDG_CONFIG_DIRS: string;
@@ -51,10 +51,8 @@ declare module '$env/static/private' {
 	export const XDG_SESSION_PATH: string;
 	export const NVM_INC: string;
 	export const XDG_MENU_PREFIX: string;
-	export const TERM_PROGRAM_VERSION: string;
 	export const CONDA_EXE: string;
 	export const _CE_M: string;
-	export const _P9K_TTY: string;
 	export const NODE: string;
 	export const LESS_TERMCAP_se: string;
 	export const LESS_TERMCAP_so: string;
@@ -62,7 +60,6 @@ declare module '$env/static/private' {
 	export const LC_NAME: string;
 	export const SSH_AUTH_SOCK: string;
 	export const GRADLE_HOME: string;
-	export const P9K_TTY: string;
 	export const XDG_CONFIG_HOME: string;
 	export const COLOR: string;
 	export const npm_config_local_prefix: string;
@@ -71,6 +68,7 @@ declare module '$env/static/private' {
 	export const SSH_AGENT_PID: string;
 	export const npm_config_globalconfig: string;
 	export const EDITOR: string;
+	export const GH_PAGER: string;
 	export const GTK_MODULES: string;
 	export const XDG_SEAT: string;
 	export const PWD: string;
@@ -83,6 +81,7 @@ declare module '$env/static/private' {
 	export const GSETTINGS_SCHEMA_DIR_CONDA_BACKUP: string;
 	export const _: string;
 	export const XAUTHORITY: string;
+	export const DESKTOP_STARTUP_ID: string;
 	export const LS_OPTIONS: string;
 	export const XDG_GREETER_DATA_DIR: string;
 	export const MOTD_SHOWN: string;
@@ -99,6 +98,7 @@ declare module '$env/static/private' {
 	export const XDG_CACHE_HOME: string;
 	export const npm_lifecycle_script: string;
 	export const NVM_DIR: string;
+	export const XDG_ACTIVATION_TOKEN: string;
 	export const npm_config_npm_version: string;
 	export const _CONDA_EXE: string;
 	export const _CONDA_ROOT: string;
@@ -110,9 +110,11 @@ declare module '$env/static/private' {
 	export const LESS_TERMCAP_me: string;
 	export const LESS_TERMCAP_md: string;
 	export const _CE_CONDA: string;
+	export const CODEX_THREAD_ID: string;
 	export const npm_config_prefix: string;
 	export const ZED_FORCE_CLI_MODE: string;
 	export const USER: string;
+	export const GIT_PAGER: string;
 	export const CONDA_SHLVL: string;
 	export const DISPLAY: string;
 	export const npm_lifecycle_event: string;
@@ -120,21 +122,26 @@ declare module '$env/static/private' {
 	export const LESS_TERMCAP_ue: string;
 	export const NVM_CD_FLAGS: string;
 	export const LESS_TERMCAP_us: string;
+	export const PAGER: string;
 	export const LC_TELEPHONE: string;
 	export const _P9K_SSH_TTY: string;
 	export const LC_MEASUREMENT: string;
 	export const XDG_VTNR: string;
 	export const XDG_SESSION_ID: string;
 	export const npm_config_user_agent: string;
+	export const NO_COLOR: string;
 	export const npm_execpath: string;
 	export const CONDA_PYTHON_EXE: string;
 	export const LD_LIBRARY_PATH: string;
+	export const CODEX_CI: string;
+	export const LC_CTYPE: string;
 	export const XDG_RUNTIME_DIR: string;
 	export const CONDA_DEFAULT_ENV: string;
 	export const DEBUGINFOD_URLS: string;
 	export const npm_package_json: string;
 	export const LC_TIME: string;
 	export const P9K_SSH: string;
+	export const LC_ALL: string;
 	export const ZED_ENVIRONMENT: string;
 	export const XDG_DATA_DIRS: string;
 	export const npm_config_noproxy: string;
@@ -145,15 +152,12 @@ declare module '$env/static/private' {
 	export const npm_config_global_prefix: string;
 	export const NVM_BIN: string;
 	export const MAIL: string;
-	export const ALACRITTY_WINDOW_ID: string;
-	export const ZED_TERM: string;
 	export const GIO_LAUNCHED_DESKTOP_FILE_PID: string;
 	export const npm_node_execpath: string;
 	export const npm_config_engine_strict: string;
 	export const GIO_LAUNCHED_DESKTOP_FILE: string;
 	export const LC_NUMERIC: string;
 	export const OLDPWD: string;
-	export const TERM_PROGRAM: string;
 	export const NODE_ENV: string;
 }
 
@@ -241,11 +245,11 @@ declare module '$env/static/public' {
  */
 declare module '$env/dynamic/private' {
 	export const env: {
+		TURSO_AUTH_TOKEN: string;
 		TURSO_CONNECTION_URL: string;
 		SHELL: string;
 		npm_command: string;
 		SESSION_MANAGER: string;
-		WINDOWID: string;
 		npm_config_userconfig: string;
 		COLORTERM: string;
 		XDG_CONFIG_DIRS: string;
@@ -254,10 +258,8 @@ declare module '$env/dynamic/private' {
 		XDG_SESSION_PATH: string;
 		NVM_INC: string;
 		XDG_MENU_PREFIX: string;
-		TERM_PROGRAM_VERSION: string;
 		CONDA_EXE: string;
 		_CE_M: string;
-		_P9K_TTY: string;
 		NODE: string;
 		LESS_TERMCAP_se: string;
 		LESS_TERMCAP_so: string;
@@ -265,7 +267,6 @@ declare module '$env/dynamic/private' {
 		LC_NAME: string;
 		SSH_AUTH_SOCK: string;
 		GRADLE_HOME: string;
-		P9K_TTY: string;
 		XDG_CONFIG_HOME: string;
 		COLOR: string;
 		npm_config_local_prefix: string;
@@ -274,6 +275,7 @@ declare module '$env/dynamic/private' {
 		SSH_AGENT_PID: string;
 		npm_config_globalconfig: string;
 		EDITOR: string;
+		GH_PAGER: string;
 		GTK_MODULES: string;
 		XDG_SEAT: string;
 		PWD: string;
@@ -286,6 +288,7 @@ declare module '$env/dynamic/private' {
 		GSETTINGS_SCHEMA_DIR_CONDA_BACKUP: string;
 		_: string;
 		XAUTHORITY: string;
+		DESKTOP_STARTUP_ID: string;
 		LS_OPTIONS: string;
 		XDG_GREETER_DATA_DIR: string;
 		MOTD_SHOWN: string;
@@ -302,6 +305,7 @@ declare module '$env/dynamic/private' {
 		XDG_CACHE_HOME: string;
 		npm_lifecycle_script: string;
 		NVM_DIR: string;
+		XDG_ACTIVATION_TOKEN: string;
 		npm_config_npm_version: string;
 		_CONDA_EXE: string;
 		_CONDA_ROOT: string;
@@ -313,9 +317,11 @@ declare module '$env/dynamic/private' {
 		LESS_TERMCAP_me: string;
 		LESS_TERMCAP_md: string;
 		_CE_CONDA: string;
+		CODEX_THREAD_ID: string;
 		npm_config_prefix: string;
 		ZED_FORCE_CLI_MODE: string;
 		USER: string;
+		GIT_PAGER: string;
 		CONDA_SHLVL: string;
 		DISPLAY: string;
 		npm_lifecycle_event: string;
@@ -323,21 +329,26 @@ declare module '$env/dynamic/private' {
 		LESS_TERMCAP_ue: string;
 		NVM_CD_FLAGS: string;
 		LESS_TERMCAP_us: string;
+		PAGER: string;
 		LC_TELEPHONE: string;
 		_P9K_SSH_TTY: string;
 		LC_MEASUREMENT: string;
 		XDG_VTNR: string;
 		XDG_SESSION_ID: string;
 		npm_config_user_agent: string;
+		NO_COLOR: string;
 		npm_execpath: string;
 		CONDA_PYTHON_EXE: string;
 		LD_LIBRARY_PATH: string;
+		CODEX_CI: string;
+		LC_CTYPE: string;
 		XDG_RUNTIME_DIR: string;
 		CONDA_DEFAULT_ENV: string;
 		DEBUGINFOD_URLS: string;
 		npm_package_json: string;
 		LC_TIME: string;
 		P9K_SSH: string;
+		LC_ALL: string;
 		ZED_ENVIRONMENT: string;
 		XDG_DATA_DIRS: string;
 		npm_config_noproxy: string;
@@ -348,15 +359,12 @@ declare module '$env/dynamic/private' {
 		npm_config_global_prefix: string;
 		NVM_BIN: string;
 		MAIL: string;
-		ALACRITTY_WINDOW_ID: string;
-		ZED_TERM: string;
 		GIO_LAUNCHED_DESKTOP_FILE_PID: string;
 		npm_node_execpath: string;
 		npm_config_engine_strict: string;
 		GIO_LAUNCHED_DESKTOP_FILE: string;
 		LC_NUMERIC: string;
 		OLDPWD: string;
-		TERM_PROGRAM: string;
 		NODE_ENV: string;
 		[key: `PUBLIC_${string}`]: undefined;
 		[key: `${string}`]: string | undefined;

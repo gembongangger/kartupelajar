@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import fs from 'fs';
-import path from 'path';
+import db from '$lib/server/db';
+import { fileToBlobValue } from '$lib/server/photo';
 
 export const load: PageServerLoad = async ({ locals }) => {
     if (!locals.user || locals.user.role !== 'admin') {
@@ -27,10 +27,18 @@ export const actions: Actions = {
             // Validate filename NISN.jpg
             if (/^\d{5,}\.jpg$/.test(name)) {
                 try {
+                    const nisn = name.replace(/\.jpg$/i, '');
                     const buffer = Buffer.from(await file.arrayBuffer());
-                    const filePath = path.join('static', 'foto', name);
-                    fs.writeFileSync(filePath, buffer);
-                    berhasil++;
+                    const result = await db.execute({
+                        sql: 'UPDATE siswa SET foto = ? WHERE nisn = ?',
+                        args: [fileToBlobValue(buffer), nisn]
+                    });
+
+                    if (result.rowsAffected > 0) {
+                        berhasil++;
+                    } else {
+                        gagal++;
+                    }
                 } catch (e) {
                     gagal++;
                 }
