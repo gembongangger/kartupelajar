@@ -11,6 +11,15 @@ export const load: PageServerLoad = async ({ locals }) => {
     return {};
 };
 
+// Function to convert Excel serial date to YYYY-MM-DD
+function excelDateToJSDate(serial: number) {
+    const date = XLSX.SSF.parse_date_code(serial);
+    const y = date.y;
+    const m = date.m.toString().padStart(2, '0');
+    const d = date.d.toString().padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
 export const actions: Actions = {
     default: async ({ request, locals }) => {
         if (!locals.user || locals.user.role !== 'admin') return fail(401);
@@ -21,6 +30,7 @@ export const actions: Actions = {
         if (!file || file.size === 0) return fail(400, { message: 'No file uploaded' });
 
         const buffer = await file.arrayBuffer();
+        // Set cellDates: true can help, but sometimes raw serials are better handled manually
         const workbook = XLSX.read(buffer);
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
@@ -38,12 +48,17 @@ export const actions: Actions = {
             const kelas = row.D || '';
             const jk = row.E || '';
             const tempat = row.F || '';
-            const tgl = row.G || '';
+            let tgl = row.G || '';
 
             if (!nisn) {
                 failed++;
                 errorDetails.push(`Baris ${i + 1}: NISN kosong.`);
                 continue;
+            }
+
+            // Convert numeric Excel date to string
+            if (typeof tgl === 'number') {
+                tgl = excelDateToJSDate(tgl);
             }
 
             try {
@@ -60,8 +75,6 @@ export const actions: Actions = {
 
                 const password = crypto.createHash('md5').update(nisn).digest('hex');
                 
-                // Use db.batch for atomic insert of User and Siswa
-                // We use last_insert_rowid() to link them within the same batch
                 await db.batch([
                     {
                         sql: 'INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
