@@ -31,8 +31,10 @@ export const actions: Actions = {
             return fail(400, { message: 'Username dan Password wajib diisi.' });
         }
 
+        // Hash password menggunakan MD5 agar kompatibel dengan PHP original
         const hashedPassword = crypto.createHash('md5').update(password).digest('hex');
 
+        // Query ke tabel users (karena data login ada di tabel users, bukan siswa)
         let user;
         try {
             const result = await db.execute({
@@ -41,13 +43,15 @@ export const actions: Actions = {
             });
             user = result.rows[0];
         } catch (e: any) {
+            console.error('Database Login Error:', e);
             return fail(500, { message: 'Kesalahan Database: ' + e.message });
         }
 
         if (!user) {
-            return fail(400, { message: 'Login gagal! Periksa kembali Username dan Password.' });
+            return fail(400, { message: 'Login gagal! Username atau Password salah.' });
         }
 
+        // Set cookie session (menggunakan id dari tabel users)
         cookies.set('session', `${user.id}:${user.role}`, {
             path: '/',
             httpOnly: true,
