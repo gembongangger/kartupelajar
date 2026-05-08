@@ -1,4 +1,4 @@
 #!/bin/bash
 git add .
-git commit -m "update: remove wa link and fix student login"
+git commit -m "fix netlify error print kartu per kelas"
 git push origin main
