@@ -52,9 +52,6 @@
     .canva { background-color: #00c4cc; }
     .canva:hover { background-color: #009aa1; }
 
-    .whatsapp { background-color: #25D366; }
-    .whatsapp:hover { background-color: #1da851; }
-
     .danger { background-color: #c62828; }
     .danger:hover { background-color: #a32020; }
 
@@ -85,7 +82,6 @@
         <li><a href="/dashboard/pilih-kelas" class="canva">Cetak Kartu Per Kelas</a></li>
         <li><a href="/dashboard/cetak" class="default" target="_blank">Cetak Semua Kartu</a></li>
         <li><a href="/dashboard/siswa" class="default">Daftar Nama Siswa</a></li>
-        <li><a href="https://chat.whatsapp.com/KtdYP6nx3eZLVhqJkQ1Zbs?mode=r_c" class="whatsapp" target="_blank">Gabung Grup WA</a></li>
         <li>
             <form method="POST" action="?/reset" use:enhance={() => {
                 return async ({ result }) => {
