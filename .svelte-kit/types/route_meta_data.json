@@ -20,6 +20,9 @@
 	"/dashboard/siswa/edit/[nisn]": [
 		"src/routes/dashboard/siswa/edit/[nisn]/+page.server.ts"
 	],
+	"/dashboard/test-print": [
+		"src/routes/dashboard/test-print/+server.ts"
+	],
 	"/dashboard/upload-excel": [
 		"src/routes/dashboard/upload-excel/+page.server.ts"
 	],

@@ -64,22 +64,65 @@ export const actions = {
             });
         }
 
-        const uploadFile = async (file: File) => {
-            if (!file || file.size === 0) {
+        const uploadFile = async (fileEntry: FormDataEntryValue | null) => {
+            // Check if it's a valid File object with size > 0
+            if (!fileEntry || typeof fileEntry === 'string' || !(fileEntry instanceof File) || fileEntry.size === 0) {
+                console.log('uploadFile: Invalid file entry', { 
+                    hasEntry: !!fileEntry, 
+                    isString: typeof fileEntry === 'string', 
+                    isFile: fileEntry instanceof File,
+                    size: fileEntry instanceof File ? fileEntry.size : null 
+                });
                 return null;
             }
 
+            const file = fileEntry as File;
+            console.log('uploadFile: Processing', { name: file.name, size: file.size, type: file.type });
             const buffer = Buffer.from(await file.arrayBuffer());
-            return {
+            const result = {
                 blob: fileToBlobValue(buffer),
                 mime: imageMimeFromFile(file)
             };
+            console.log('uploadFile: Result', { blobLength: result.blob.length, mime: result.mime });
+            return result;
         };
 
-        const newLogo = await uploadFile(data.get('logo') as File);
-        const newTtd = await uploadFile(data.get('tanda_tangan') as File);
-        const newBg = await uploadFile(data.get('background') as File);
-        const newBg2 = await uploadFile(data.get('background_belakang') as File);
+        const logoEntry = data.get('logo');
+        console.log('Logo entry:', { isFile: logoEntry instanceof File, size: logoEntry instanceof File ? logoEntry.size : null, type: typeof logoEntry });
+
+        const newLogo = await uploadFile(logoEntry);
+        const newTtd = await uploadFile(data.get('tanda_tangan'));
+        const newBg = await uploadFile(data.get('background'));
+        const newBg2 = await uploadFile(data.get('background_belakang'));
+
+        const args = [
+            nama?.toString(),
+            alamat?.toString(),
+            kepala?.toString(),
+            nip_kepala?.toString(),
+            tanggal?.toString(),
+            newLogo?.blob ?? null,
+            newLogo?.mime ?? null,
+            newTtd?.blob ?? null,
+            newTtd?.mime ?? null,
+            newBg?.blob ?? null,
+            newBg?.mime ?? null,
+            newBg2?.blob ?? null,
+            newBg2?.mime ?? null
+        ];
+        
+        console.log('SQL UPDATE args:', {
+            nama: args[0],
+            alamat: args[1],
+            kepala: args[2],
+            nip: args[3],
+            tanggal: args[4],
+            logoBlobSize: newLogo?.blob?.length ?? null,
+            logoMime: newLogo?.mime ?? null,
+            ttdBlobSize: newTtd?.blob?.length ?? null,
+            bgBlobSize: newBg?.blob?.length ?? null,
+            bg2BlobSize: newBg2?.blob?.length ?? null,
+        });
 
         await db.execute({
             sql: `UPDATE pengaturan SET
@@ -97,22 +140,10 @@ export const actions = {
                 background_belakang = COALESCE(?, background_belakang),
                 background_belakang_mime = COALESCE(?, background_belakang_mime)
                 WHERE id = 1`,
-            args: [
-                nama?.toString(),
-                alamat?.toString(),
-                kepala?.toString(),
-                nip_kepala?.toString(),
-                tanggal?.toString(),
-                newLogo?.blob ?? null,
-                newLogo?.mime ?? null,
-                newTtd?.blob ?? null,
-                newTtd?.mime ?? null,
-                newBg?.blob ?? null,
-                newBg?.mime ?? null,
-                newBg2?.blob ?? null,
-                newBg2?.mime ?? null
-            ]
+            args
         });
+        
+        console.log('UPDATE pengaturan executed successfully');
 
         return { success: true };
     }

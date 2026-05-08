@@ -1,4 +1,4 @@
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import db from '$lib/server/db';
 import { jsPDF } from 'jspdf';
@@ -32,10 +32,13 @@ function generateBarcode(text: string): string | null {
 
 export const GET: RequestHandler = async ({ url, locals }) => {
     try {
+        console.log('GET /dashboard/cetak START', { nisn: url.searchParams.get('nisn'), kelas: url.searchParams.get('kelas'), user: locals.user });
+        
         if (!locals.user || locals.user.role !== 'admin') {
-            throw error(401, 'Unauthorized');
+            throw redirect(302, '/');
         }
 
+        console.log('User verified, proceeding...');
         const nisn = url.searchParams.get('nisn');
         const kelas = url.searchParams.get('kelas');
 
@@ -50,17 +53,27 @@ export const GET: RequestHandler = async ({ url, locals }) => {
             args.push(kelas);
         }
 
+        console.log('Executing student query...');
         const studentsResult = await db.execute({ sql, args });
         const students = studentsResult.rows;
+        console.log('Students found:', students.length);
         
+        console.log('Executing settings query...');
         const settingsResult = await db.execute('SELECT * FROM pengaturan LIMIT 1');
         const pengaturan = settingsResult.rows[0];
+        console.log('Settings loaded');
 
         if (students.length === 0) {
             throw error(404, 'No students found');
         }
 
+        if (students.length > 40) {
+            throw error(400, 'Terdapat lebih dari 40 siswa. Silakan cetak per kelas');
+        }
+
+        console.log('Creating jsPDF instance...');
         const doc = new jsPDF('p', 'mm', 'a4');
+        console.log('jsPDF instance created');
 
         // Pre-compute static assets once
         const bgFrontBuffer = photoValueToBuffer(pengaturan.background);
@@ -80,7 +93,9 @@ export const GET: RequestHandler = async ({ url, locals }) => {
         const headMaster = pengaturan.kepala_sekolah as string;
         const headNip = `NIP. ${pengaturan.nip_kepala_sekolah}`;
         
+        console.log('Starting student loop for', students.length, 'students');
         for (let i = 0; i < students.length; i++) {
+            console.log('Processing student', i + 1, 'of', students.length);
             const student = students[i] as any;
             if (i > 0 && i % 4 === 0) {
                 doc.addPage();
@@ -147,8 +162,9 @@ export const GET: RequestHandler = async ({ url, locals }) => {
             doc.setFont('helvetica', 'normal');
             doc.text(headNip, xBack + 62, y + 54, { align: 'center' });
         }
-
+        console.log('Generating PDF output...');
         const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
+        console.log('PDF generated, size:', pdfBuffer.length);
 
         return new Response(pdfBuffer, {
             headers: {
@@ -158,6 +174,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
         });
     } catch (e) {
         console.error('Print card error:', e);
+        if (e instanceof Response) throw e;
         throw error(500, 'Gagal mencetak kartu pelajar');
     }
 };
