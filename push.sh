@@ -1,4 +1,4 @@
 #!/bin/bash
 git add .
-git commit -m "penambahan animasi loading"
+git commit -m "Fitur setting kelas"
 git push origin main

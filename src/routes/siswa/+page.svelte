@@ -228,6 +228,12 @@
             {/if}
         </button>
     </form>
+
+    <form method="POST" action="/logout" use:enhance>
+        <button type="submit" style="background-color: #c62828;">
+            Logout
+        </button>
+    </form>
 </div>
 
 <div class="notif-container">

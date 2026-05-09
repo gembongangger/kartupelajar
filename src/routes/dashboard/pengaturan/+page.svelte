@@ -36,7 +36,7 @@
     let submittingKelas = $state(false);
 
     $effect(() => {
-        if (data.kelas && kelasText === '') {
+        if (data.kelas) {
             kelasText = data.kelas.map((k: any) => k.nama).join('\n');
         }
     });
@@ -44,7 +44,8 @@
     function handleSubmit() {
         submitting = true;
 
-        return async ({ result }: { result: any }) => {
+        return async ({ result, update }: { result: any; update: () => void }) => {
+            update();
             submitting = false;
             if (result.type === 'success' && result.data?.success) {
                 notify = { type: 'success', message: 'Pengaturan berhasil disimpan' };
@@ -60,7 +61,8 @@
 
     function handleSubmitKelas() {
         submittingKelas = true;
-        return async ({ result }: { result: any }) => {
+        return async ({ result, update }: { result: any; update: () => void }) => {
+            update();
             submittingKelas = false;
             if (result.type === 'success' && result.data?.success) {
                 notify = { type: 'success', message: 'Kelas berhasil disimpan' };

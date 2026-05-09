@@ -9,7 +9,8 @@
 
     function handleLogin() {
         submitting = true;
-        return async ({ result }: { result: any }) => {
+        return async ({ result, update }: { result: any; update: () => void }) => {
+            update();
             submitting = false;
         };
     }
