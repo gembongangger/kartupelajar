@@ -1,5 +1,12 @@
 <script lang="ts">
     let { data } = $props();
+
+    let submitting = $state(false);
+
+    function handleSubmit() {
+        submitting = true;
+        setTimeout(() => { submitting = false; }, 2000);
+    }
 </script>
 
 <style>
@@ -41,9 +48,21 @@
         border-radius: 5px;
         font-size: 16px;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
 
     button:hover { background-color: #1d2d50; }
+    button:disabled { background-color: #7f8eb0; cursor: not-allowed; }
+
+    .spinner {
+        width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3);
+        border-top: 2px solid #fff; border-radius: 50%; animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     .back-link {
         display: block;
@@ -65,7 +84,7 @@
     <div class="container">
         <h2>Cetak Kartu Pelajar</h2>
 
-        <form method="GET" action="/dashboard/cetak" target="_blank">
+        <form method="GET" action="/dashboard/cetak" target="_blank" onsubmit={handleSubmit}>
             <label for="kelas">Pilih Kelas:</label>
             <select name="kelas" id="kelas" required>
                 <option value="">-- Pilih Kelas --</option>
@@ -74,7 +93,14 @@
                 {/each}
             </select>
 
-            <button type="submit">Cetak Kartu</button>
+            <button type="submit" disabled={submitting}>
+                {#if submitting}
+                    <span class="spinner"></span>
+                    Mencetak...
+                {:else}
+                    Cetak Kartu
+                {/if}
+            </button>
         </form>
 
         <a href="/dashboard" class="back-link">← Kembali ke Dashboard</a>

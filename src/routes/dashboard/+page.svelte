@@ -1,6 +1,21 @@
 <script lang="ts">
     import { enhance } from '$app/forms';
     let { data, form } = $props();
+
+    let submittingReset = $state(false);
+    let submittingLogout = $state(false);
+
+    function handleReset() {
+        if (!confirm('Yakin ingin mereset database? Semua data akan hilang!')) return;
+        submittingReset = true;
+        return async ({ result }: { result: any }) => {
+            submittingReset = false;
+        };
+    }
+
+    function handleLogout() {
+        submittingLogout = true;
+    }
 </script>
 
 <style>
@@ -54,9 +69,25 @@
 
     .danger { background-color: #c62828; }
     .danger:hover { background-color: #a32020; }
+    .danger:disabled { background-color: #d88282; cursor: not-allowed; }
 
     .default { background-color: #003366; }
     .default:hover { background-color: #001f4d; }
+    .default:disabled { background-color: #668099; cursor: not-allowed; }
+
+    button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .spinner {
+        width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3);
+        border-top: 2px solid #fff; border-radius: 50%; animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     @media (max-width: 480px) {
         a, button {
@@ -83,18 +114,28 @@
         <li><a href="/dashboard/cetak" class="default" target="_blank">Cetak Semua Kartu</a></li>
         <li><a href="/dashboard/siswa" class="default">Daftar Nama Siswa</a></li>
         <li>
-            <form method="POST" action="?/reset" use:enhance={() => {
-                return async ({ result }) => {
-                    if (confirm('Yakin ingin mereset database? Semua data akan hilang!')) {
-                        // Allow
-                    } else {
-                        return;
-                    }
-                };
-            }}>
-                <button type="submit" class="danger">RESET DATABASE</button>
+            <form method="POST" action="?/reset" use:enhance={handleReset}>
+                <button type="submit" class="danger" disabled={submittingReset}>
+                    {#if submittingReset}
+                        <span class="spinner"></span>
+                        Menghapus data...
+                    {:else}
+                        RESET DATABASE
+                    {/if}
+                </button>
             </form>
         </li>
-        <li><form method="POST" action="/logout"><button type="submit" class="default">Logout</button></form></li>
+        <li>
+            <form method="POST" action="/logout" use:enhance={handleLogout}>
+                <button type="submit" class="default" disabled={submittingLogout}>
+                    {#if submittingLogout}
+                        <span class="spinner"></span>
+                        Logout...
+                    {:else}
+                        Logout
+                    {/if}
+                </button>
+            </form>
+        </li>
     </ul>
 </div>

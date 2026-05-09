@@ -4,6 +4,15 @@
 
     let pengaturan = $derived(data.pengaturan);
     let logo_path = $derived(pengaturan?.has_logo ? '/pengaturan/gambar/logo' : null);
+
+    let submitting = $state(false);
+
+    function handleLogin() {
+        submitting = true;
+        return async ({ result }: { result: any }) => {
+            submitting = false;
+        };
+    }
 </script>
 
 <style>
@@ -84,11 +93,27 @@
         border-radius: 6px;
         font-size: 1rem;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
 
     button:hover {
         background-color: #002244;
     }
+
+    button:disabled {
+        background-color: #668099;
+        cursor: not-allowed;
+    }
+
+    .spinner {
+        width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3);
+        border-top: 2px solid #fff; border-radius: 50%; animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     .error {
         color: var(--danger);
@@ -144,10 +169,17 @@
             {#if form?.message}
                 <p class="error">{form.message}</p>
             {/if}
-            <form method="POST" action="?/login" use:enhance>
+            <form method="POST" action="?/login" use:enhance={handleLogin}>
                 <input type="text" name="username" placeholder="Username" required>
                 <input type="password" name="password" placeholder="Password" required>
-                <button type="submit">Login</button>
+                <button type="submit" disabled={submitting}>
+                    {#if submitting}
+                        <span class="spinner"></span>
+                        Masuk...
+                    {:else}
+                        Login
+                    {/if}
+                </button>
             </form>
             <p class="note"><em>Aplikasi SvelteKit Version</em></p>
             <p class="note"><em>Siswa dapat melakukan perbaikan data dan upload foto login username: NISN, pasword: NISN</em></p>

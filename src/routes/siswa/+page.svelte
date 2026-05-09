@@ -4,9 +4,25 @@
     let { data } = $props();
     let siswa = $derived(data.siswa);
 
-    let submittingFoto = $state(false);
+    let submitting1 = $state(false);
+    let submitting2 = $state(false);
     let modelLoad = $state(false);
     let notify: { type: 'success' | 'error'; message: string } | null = $state(null);
+
+    function handleUpdate() {
+        submitting1 = true;
+        return async ({ result }: { result: any }) => {
+            submitting1 = false;
+            if (result.type === 'success' && result.data?.success) {
+                notify = { type: 'success', message: 'Data berhasil disimpan' };
+            } else if (result.type === 'failure') {
+                notify = { type: 'error', message: result.data?.message || 'Gagal menyimpan' };
+            } else {
+                notify = { type: 'error', message: 'Gagal menyimpan data' };
+            }
+            setTimeout(() => { notify = null; }, 4000);
+        };
+    }
 
     async function handleUpload({ formData }: { formElement: HTMLFormElement; formData: FormData }) {
         const file = formData.get('foto') as File;
@@ -18,7 +34,7 @@
             return;
         }
 
-        submittingFoto = true;
+        submitting2 = true;
         modelLoad = true;
 
         try {
@@ -28,12 +44,12 @@
         } catch (e: any) {
             notify = { type: 'error', message: 'Gagal proses foto: ' + (e.message || '') };
             setTimeout(() => { notify = null; }, 4000);
-            submittingFoto = false;
+            submitting2 = false;
             return;
         }
 
         return async ({ result }: { result: any }) => {
-            submittingFoto = false;
+            submitting2 = false;
             if (result.type === 'success' && result.data?.success) {
                 notify = { type: 'success', message: 'Foto berhasil diupload dengan background merah' };
             } else if (result.type === 'failure') {
@@ -94,10 +110,19 @@
         cursor: pointer;
         font-weight: bold;
         transition: background-color 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
 
     button:hover {
         background-color: #145dbf;
+    }
+
+    button:disabled {
+        background-color: #7fb3f0;
+        cursor: not-allowed;
     }
 
     img {
@@ -119,6 +144,13 @@
     .logout-link:hover {
         text-decoration: underline;
     }
+
+    .spinner {
+        width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3);
+        border-top: 2px solid #fff; border-radius: 50%; animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     @media screen and (max-width: 600px) {
         .siswa-body {
@@ -145,7 +177,7 @@
 <div class="siswa-body">
     <h2>Profil Siswa</h2>
 
-    <form method="POST" action="?/update" use:enhance>
+    <form method="POST" action="?/update" use:enhance={handleUpdate}>
         <label for="nama">Nama Lengkap</label>
         <input type="text" name="nama" id="nama" value={siswa.nama} required>
 
@@ -164,7 +196,14 @@
         <label for="kelas">Kelas</label>
         <input type="text" name="kelas" id="kelas" value={siswa.kelas} required>
 
-        <button type="submit">Simpan Perubahan</button>
+        <button type="submit" disabled={submitting1}>
+            {#if submitting1}
+                <span class="spinner"></span>
+                Menyimpan...
+            {:else}
+                Simpan Perubahan
+            {/if}
+        </button>
     </form>
 
     <h3>Foto Siswa</h3>
@@ -175,17 +214,14 @@
     <form method="POST" action="?/upload_foto" enctype="multipart/form-data" use:enhance={handleUpload}>
         <label for="foto">Ganti Foto (JPG)</label>
         <input type="file" name="foto" id="foto" accept=".jpg" required>
-        <button type="submit" disabled={submittingFoto}>
-            {#if submittingFoto}
-                {modelLoad ? '⏳ Mendownload model AI...' : '✂️ Memproses foto...'}
+        <button type="submit" disabled={submitting2}>
+            {#if submitting2}
+                <span class="spinner"></span>
+                {modelLoad ? 'Muat model AI...' : 'Memproses foto...'}
             {:else}
                 Upload Foto
             {/if}
         </button>
-    </form>
-
-    <form method="POST" action="/logout">
-        <button type="submit" class="logout-link" style="background: none; color: #1877f2; padding: 0; font-size: inherit; cursor: pointer;">Logout</button>
     </form>
 </div>
 
