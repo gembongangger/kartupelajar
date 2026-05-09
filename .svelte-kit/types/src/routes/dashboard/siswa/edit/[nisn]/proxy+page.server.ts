@@ -15,7 +15,10 @@ export const load = async ({ params, locals }: Parameters<PageServerLoad>[0]) =>
     const student = result.rows[0];
     if (!student) throw redirect(302, '/dashboard/siswa');
 
-    return { student };
+    const kelasResult = await db.execute('SELECT * FROM kelas ORDER BY nama ASC');
+    const kelas = kelasResult.rows;
+
+    return { student, kelas };
 };
 
 export const actions = {

@@ -194,7 +194,12 @@
         <input type="date" name="tgl" id="tgl" value={siswa.tanggal_lahir}>
 
         <label for="kelas">Kelas</label>
-        <input type="text" name="kelas" id="kelas" value={siswa.kelas} required>
+        <select name="kelas" id="kelas" value={siswa.kelas} required>
+            <option value="">-- Pilih Kelas --</option>
+            {#each data.kelas as k}
+                <option value={k.nama}>{k.nama}</option>
+            {/each}
+        </select>
 
         <button type="submit" disabled={submitting1}>
             {#if submitting1}

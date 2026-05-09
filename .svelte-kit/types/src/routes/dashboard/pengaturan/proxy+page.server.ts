@@ -28,7 +28,11 @@ export const load = async ({ locals }: Parameters<PageServerLoad>[0]) => {
         WHERE id = 1
     `);
     const pengaturan = result.rows[0];
-    return { pengaturan };
+
+    const kelasResult = await db.execute('SELECT * FROM kelas ORDER BY nama ASC');
+    const kelas = kelasResult.rows;
+
+    return { pengaturan, kelas };
 };
 
 export const actions = {
@@ -160,6 +164,27 @@ export const actions = {
         console.log('UPDATE pengaturan executed successfully');
 
         return { success: true };
+    },
+
+    simpan_kelas: async ({ request, locals }: import('./$types').RequestEvent) => {
+        if (!locals.user || locals.user.role !== 'admin') return fail(401);
+
+        const data = await request.formData();
+        const list = data.get('kelas')?.toString() || '';
+        const names = list.split('\n').map(s => s.trim()).filter(Boolean);
+
+        try {
+            await db.execute('DELETE FROM kelas');
+            for (const nama of names) {
+                await db.execute({
+                    sql: 'INSERT INTO kelas (nama) VALUES (?)',
+                    args: [nama]
+                });
+            }
+            return { success: true };
+        } catch (e: any) {
+            return fail(500, { message: 'Gagal menyimpan kelas: ' + (e?.message || 'unknown error') });
+        }
     }
 };
 ;null as any as Actions;

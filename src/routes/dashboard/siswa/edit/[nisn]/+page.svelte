@@ -44,7 +44,12 @@
         <input type="text" name="nis" id="nis" value={student.nis} required>
 
         <label for="kelas">Kelas</label>
-        <input type="text" name="kelas" id="kelas" value={student.kelas} required>
+        <select name="kelas" id="kelas" value={student.kelas} required>
+            <option value="">-- Pilih Kelas --</option>
+            {#each data.kelas as k}
+                <option value={k.nama}>{k.nama}</option>
+            {/each}
+        </select>
 
         <label for="jk">Jenis Kelamin</label>
         <select name="jk" id="jk" value={student.jenis_kelamin} required>

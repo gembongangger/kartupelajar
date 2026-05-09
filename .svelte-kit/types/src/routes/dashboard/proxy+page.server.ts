@@ -63,6 +63,10 @@ export const actions = {
                     foto BLOB,
                     user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE
                 );
+                CREATE TABLE IF NOT EXISTS kelas (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    nama TEXT UNIQUE NOT NULL
+                );
 
                 INSERT INTO pengaturan (id, nama_sekolah, alamat, kepala_sekolah, nip_kepala_sekolah, tanggal_ttd)
                 VALUES (1, 'SD NEGERI BERMUTU', 'Jalan Kebagusan, RT.27 RW.05 Kelurahan Sumberberkah, Kec. Gemahripah', 'Nir Singgih Purwantio, S.Pd.', '198705092021021004', '2025-07-14');

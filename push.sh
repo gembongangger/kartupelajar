@@ -1,4 +1,4 @@
 #!/bin/bash
 git add .
-git commit -m "ganti background merah/dan cropping center pada cetakan"
+git commit -m "penambahan animasi loading"
 git push origin main

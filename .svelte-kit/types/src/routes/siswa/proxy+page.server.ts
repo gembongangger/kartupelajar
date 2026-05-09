@@ -19,7 +19,10 @@ export const load = async ({ locals }: Parameters<PageServerLoad>[0]) => {
         throw redirect(302, '/');
     }
 
-    return { siswa };
+    const kelasResult = await db.execute('SELECT * FROM kelas ORDER BY nama ASC');
+    const kelas = kelasResult.rows;
+
+    return { siswa, kelas };
 };
 
 export const actions = {

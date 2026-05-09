@@ -32,6 +32,15 @@
         }
     }
 
+    let kelasText = $state('');
+    let submittingKelas = $state(false);
+
+    $effect(() => {
+        if (data.kelas && kelasText === '') {
+            kelasText = data.kelas.map((k: any) => k.nama).join('\n');
+        }
+    });
+
     function handleSubmit() {
         submitting = true;
 
@@ -45,6 +54,21 @@
                 notify = { type: 'error', message: 'Gagal menyimpan pengaturan' };
             }
 
+            setTimeout(() => { notify = null; }, 4000);
+        };
+    }
+
+    function handleSubmitKelas() {
+        submittingKelas = true;
+        return async ({ result }: { result: any }) => {
+            submittingKelas = false;
+            if (result.type === 'success' && result.data?.success) {
+                notify = { type: 'success', message: 'Kelas berhasil disimpan' };
+            } else if (result.type === 'failure' && result.data?.message) {
+                notify = { type: 'error', message: result.data.message };
+            } else {
+                notify = { type: 'error', message: 'Gagal menyimpan kelas' };
+            }
             setTimeout(() => { notify = null; }, 4000);
         };
     }
@@ -251,6 +275,22 @@
                 Menyimpan...
             {:else}
                 Simpan Pengaturan
+            {/if}
+        </button>
+    </form>
+    <hr style="margin-top: 30px;">
+    <h3>Data Kelas</h3>
+    <form method="POST" action="?/simpan_kelas" use:enhance={handleSubmitKelas}>
+        <p>
+            <label for="kelas">Daftar Kelas (satu baris per kelas):</label>
+            <textarea name="kelas" id="kelas" rows="6" bind:value={kelasText}></textarea>
+        </p>
+        <button type="submit" disabled={submittingKelas}>
+            {#if submittingKelas}
+                <span class="spinner"></span>
+                Menyimpan...
+            {:else}
+                Simpan Kelas
             {/if}
         </button>
     </form>
