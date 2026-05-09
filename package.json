@@ -22,7 +22,7 @@
 		"vite": "^8.0.7"
 	},
 	"dependencies": {
-		"@libsql/client": "^0.3.6",
+		"@libsql/client": "^0.17.3",
 		"@lucia-auth/adapter-sqlite": "^3.0.2",
 		"bwip-js": "^4.10.1",
 		"dotenv": "^17.4.2",

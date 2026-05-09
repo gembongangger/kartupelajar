@@ -15,19 +15,23 @@ function tanggalIndonesia(tanggal: string) {
     return `${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-function generateBarcode(text: string): string | null {
-    try {
-        return bwipjs.toSVG({
+function generateBarcode(text: string): Promise<Buffer | null> {
+    return new Promise((resolve) => {
+        bwipjs.toBuffer({
             bcid: 'code128',
             text: text,
             scale: 3,
             height: 10,
             includetext: false,
+        }, (err: Error | null, buf: Buffer) => {
+            if (err) {
+                console.error('Barcode generation failed:', err);
+                resolve(null);
+            } else {
+                resolve(buf);
+            }
         });
-    } catch (e) {
-        console.error('Barcode generation failed:', e);
-        return null;
-    }
+    });
 }
 
 export const GET: RequestHandler = async ({ url, locals }) => {
@@ -88,8 +92,8 @@ export const GET: RequestHandler = async ({ url, locals }) => {
         const ttdFormat = ttdBuffer ? imageFormatFromBuffer(ttdBuffer) : null;
         const ttdBase64 = ttdBuffer ? ttdBuffer.toString('base64') : null;
 
-        const ttdDate = `Ditetapkan di: ......, ${tanggalIndonesia(pengaturan.tanggal_ttd as string)}`;
-        const tataTertib = `TATA TERTIB / KETERANGAN:\n1. Kartu ini wajib dibawa setiap hari sekolah.\n2. Jika menemukan kartu ini, mohon dikembalikan ke:\n${pengaturan.nama_sekolah}\n${pengaturan.alamat}`;
+        const ttdDate = `Ditetapkan di: ${(pengaturan.kota_ttd as string) || '......'}, ${tanggalIndonesia(pengaturan.tanggal_ttd as string)}`;
+        const tataTertib = (pengaturan.tata_tertib as string) || `TATA TERTIB / KETERANGAN:\n1. Kartu ini wajib dibawa setiap hari sekolah.\n2. Jika menemukan kartu ini, mohon dikembalikan ke:\n${pengaturan.nama_sekolah}\n${pengaturan.alamat}`;
         const headMaster = pengaturan.kepala_sekolah as string;
         const headNip = `NIP. ${pengaturan.nip_kepala_sekolah}`;
         
@@ -132,9 +136,9 @@ export const GET: RequestHandler = async ({ url, locals }) => {
             doc.text(`JK : ${student.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'}`, x + 25, y + 28);
 
             // Barcode
-            const barcodeSvg = generateBarcode(student.nisn as string);
-            if (barcodeSvg) {
-                doc.addSvg(barcodeSvg, x + 13, y + 38, 60, 8);
+            const barcodeBuffer = await generateBarcode(student.nisn as string);
+            if (barcodeBuffer) {
+                doc.addImage(barcodeBuffer.toString('base64'), 'PNG', x + 13, y + 38, 60, 8);
             }
             doc.text(student.nisn as string, x + 43, y + 49, { align: 'center' });
 

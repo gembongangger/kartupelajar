@@ -18,6 +18,8 @@ export const load = async ({ locals }: Parameters<PageServerLoad>[0]) => {
             kepala_sekolah,
             nip_kepala_sekolah,
             tanggal_ttd,
+            tata_tertib,
+            kota_ttd,
             logo IS NOT NULL AS has_logo,
             tanda_tangan IS NOT NULL AS has_tanda_tangan,
             background IS NOT NULL AS has_background,
@@ -95,12 +97,17 @@ export const actions = {
         const newBg = await uploadFile(data.get('background'));
         const newBg2 = await uploadFile(data.get('background_belakang'));
 
+        const tata_tertib = data.get('tata_tertib');
+        const kota_ttd = data.get('kota_ttd');
+
         const args = [
             nama?.toString(),
             alamat?.toString(),
             kepala?.toString(),
             nip_kepala?.toString(),
             tanggal?.toString(),
+            tata_tertib?.toString(),
+            kota_ttd?.toString(),
             newLogo?.blob ?? null,
             newLogo?.mime ?? null,
             newTtd?.blob ?? null,
@@ -124,24 +131,31 @@ export const actions = {
             bg2BlobSize: newBg2?.blob?.length ?? null,
         });
 
-        await db.execute({
-            sql: `UPDATE pengaturan SET
-                nama_sekolah = ?,
-                alamat = ?,
-                kepala_sekolah = ?,
-                nip_kepala_sekolah = ?,
-                tanggal_ttd = ?,
-                logo = COALESCE(?, logo),
-                logo_mime = COALESCE(?, logo_mime),
-                tanda_tangan = COALESCE(?, tanda_tangan),
-                tanda_tangan_mime = COALESCE(?, tanda_tangan_mime),
-                background = COALESCE(?, background),
-                background_mime = COALESCE(?, background_mime),
-                background_belakang = COALESCE(?, background_belakang),
-                background_belakang_mime = COALESCE(?, background_belakang_mime)
-                WHERE id = 1`,
-            args
-        });
+        try {
+            await db.execute({
+                sql: `UPDATE pengaturan SET
+                    nama_sekolah = ?,
+                    alamat = ?,
+                    kepala_sekolah = ?,
+                    nip_kepala_sekolah = ?,
+                    tanggal_ttd = ?,
+                    tata_tertib = ?,
+                    kota_ttd = ?,
+                    logo = COALESCE(?, logo),
+                    logo_mime = COALESCE(?, logo_mime),
+                    tanda_tangan = COALESCE(?, tanda_tangan),
+                    tanda_tangan_mime = COALESCE(?, tanda_tangan_mime),
+                    background = COALESCE(?, background),
+                    background_mime = COALESCE(?, background_mime),
+                    background_belakang = COALESCE(?, background_belakang),
+                    background_belakang_mime = COALESCE(?, background_belakang_mime)
+                    WHERE id = 1`,
+                args
+            });
+        } catch (e: any) {
+            console.error('Turso error:', e);
+            return fail(500, { message: 'Gagal menyimpan ke database: ' + (e?.message || 'unknown error') });
+        }
         
         console.log('UPDATE pengaturan executed successfully');
 

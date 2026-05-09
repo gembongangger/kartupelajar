@@ -1,4 +1,4 @@
 #!/bin/bash
 git add .
-git commit -m "fix netlify time funtion execution"
+git commit -m "fix fitur print kartu"
 git push origin main

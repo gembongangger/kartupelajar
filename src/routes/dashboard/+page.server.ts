@@ -33,6 +33,8 @@ export const actions: Actions = {
                     kepala_sekolah TEXT,
                     nip_kepala_sekolah TEXT,
                     tanggal_ttd TEXT,
+                    tata_tertib TEXT,
+                    kota_ttd TEXT,
                     logo BLOB,
                     logo_mime TEXT,
                     tanda_tangan BLOB,

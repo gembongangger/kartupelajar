@@ -13,6 +13,9 @@
     let bgPreview = $derived(bgPreviewOverride || (pengaturan.has_background ? '/pengaturan/gambar/background' : ''));
     let bg2Preview = $derived(bg2PreviewOverride || (pengaturan.has_background_belakang ? '/pengaturan/gambar/background_belakang' : ''));
 
+    let submitting = $state(false);
+    let notify: { type: 'success' | 'error'; message: string } | null = $state(null);
+
     function handlePreview(event: Event, type: string) {
         const input = event.target as HTMLInputElement;
         const file = input.files?.[0];
@@ -27,6 +30,23 @@
             };
             reader.readAsDataURL(file);
         }
+    }
+
+    function handleSubmit() {
+        submitting = true;
+
+        return async ({ result }: { result: any }) => {
+            submitting = false;
+            if (result.type === 'success' && result.data?.success) {
+                notify = { type: 'success', message: 'Pengaturan berhasil disimpan' };
+            } else if (result.type === 'failure' && result.data?.message) {
+                notify = { type: 'error', message: result.data.message };
+            } else {
+                notify = { type: 'error', message: 'Gagal menyimpan pengaturan' };
+            }
+
+            setTimeout(() => { notify = null; }, 4000);
+        };
     }
 </script>
 
@@ -86,9 +106,55 @@
         font-size: 16px;
         width: 100%;
         margin-top: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
 
     button:hover { background-color: #004c81; }
+    button:disabled { background-color: #7fa8c9; cursor: not-allowed; }
+
+    .spinner {
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top: 2px solid #fff;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .notif-container {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 999;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .notif {
+        padding: 14px 28px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 500;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        pointer-events: auto;
+        animation: fadeInUp 0.25s ease-out;
+    }
+
+    .notif.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .notif.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
     .back-link {
         display: block;
@@ -105,14 +171,8 @@
 
 <div class="settings-body">
     <h2>Pengaturan Sekolah</h2>
-    {#if form?.message}
-        <p class="error">{form.message}</p>
-    {/if}
-    {#if form?.success}
-        <p style="color: green; text-align: center;">Profil sekolah berhasil disimpan</p>
-    {/if}
 
-    <form method="POST" action="?/simpan" enctype="multipart/form-data" use:enhance>
+    <form method="POST" action="?/simpan" enctype="multipart/form-data" use:enhance={handleSubmit}>
         <p>
             <label for="nama_sekolah">Nama Sekolah:</label>
             <input type="text" name="nama_sekolah" id="nama_sekolah" value={pengaturan.nama_sekolah} required>
@@ -120,6 +180,14 @@
         <p>
             <label for="alamat">Alamat:</label>
             <textarea name="alamat" id="alamat" rows="3" required>{pengaturan.alamat}</textarea>
+        </p>
+        <p>
+            <label for="kota_ttd">Kota Tanda Tangan:</label>
+            <input type="text" name="kota_ttd" id="kota_ttd" value={pengaturan.kota_ttd}>
+        </p>
+        <p>
+            <label for="tata_tertib">Tata Tertib / Keterangan Kartu:</label>
+            <textarea name="tata_tertib" id="tata_tertib" rows="4">{pengaturan.tata_tertib}</textarea>
         </p>
         <p>
             <label for="kepala_sekolah">Kepala Sekolah:</label>
@@ -177,7 +245,20 @@
             <input type="password" name="konfirmasi_password" id="konfirmasi_password">
         </p>
 
-        <button type="submit">Simpan Pengaturan</button>
+        <button type="submit" disabled={submitting}>
+            {#if submitting}
+                <span class="spinner"></span>
+                Menyimpan...
+            {:else}
+                Simpan Pengaturan
+            {/if}
+        </button>
     </form>
     <a href="/dashboard" class="back-link">← Kembali ke Dashboard</a>
+</div>
+
+<div class="notif-container">
+    {#if notify}
+        <div class="notif {notify.type}">{notify.message}</div>
+    {/if}
 </div>
