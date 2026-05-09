@@ -3,11 +3,24 @@
     let { form } = $props();
 
     let submitting = $state(false);
+    let notify: { type: 'success' | 'error'; message: string } | null = $state(null);
 
     function handleSubmit() {
         submitting = true;
-        return async ({ result }: { result: any }) => {
+        return async ({ result, update }: { result: any; update: () => void }) => {
+            update();
             submitting = false;
+            if (result.type === 'success' && result.data) {
+                const d = result.data;
+                if (d.message) {
+                    notify = { type: 'error', message: d.message };
+                } else {
+                    notify = { type: 'success', message: `✅ ${d.success} berhasil, ❌ ${d.failed} gagal` };
+                }
+            } else if (result.type === 'failure' && result.data?.message) {
+                notify = { type: 'error', message: result.data.message };
+            }
+            setTimeout(() => { notify = null; }, 5000);
         };
     }
 </script>
@@ -39,6 +52,18 @@
     .link a { color: #fff; text-decoration: none; font-weight: bold; }
     .template-link { display: inline-block; margin-bottom: 15px; color: #00c3ff; text-decoration: none; font-size: 0.9rem; }
     .template-link:hover { text-decoration: underline; }
+
+    .notif-container {
+        position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+        z-index: 999; pointer-events: none; display: flex; flex-direction: column; align-items: center;
+    }
+    .notif {
+        padding: 14px 28px; border-radius: 8px; font-size: 15px; font-weight: 500;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15); pointer-events: auto; animation: fadeInUp 0.25s ease-out;
+    }
+    .notif.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .notif.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
 <div class="upload-body">
@@ -46,20 +71,27 @@
         <h2>Upload Excel Siswa</h2>
 
         {#if form}
-            <div class="info">
-                <strong>Hasil Upload:</strong><br>
-                ✅ Berhasil: {form.success} | ❌ Gagal: {form.failed}
-            </div>
-
-            {#if form.errorDetails && form.errorDetails.length > 0}
+            {#if form.message}
                 <div class="error-log">
-                    <h4>Detail Kesalahan:</h4>
-                    <ul>
-                        {#each form.errorDetails as err}
-                            <li>{err}</li>
-                        {/each}
-                    </ul>
+                    <h4>Upload Dibatalkan:</h4>
+                    <p style="white-space: pre-wrap">{form.message}</p>
                 </div>
+            {:else}
+                <div class="info">
+                    <strong>Hasil Upload:</strong><br>
+                    ✅ Berhasil: {form.success} | ❌ Gagal: {form.failed}
+                </div>
+
+                {#if form.errorDetails && form.errorDetails.length > 0}
+                    <div class="error-log">
+                        <h4>Detail Kesalahan:</h4>
+                        <ul>
+                            {#each form.errorDetails as err}
+                                <li>{err}</li>
+                            {/each}
+                        </ul>
+                    </div>
+                {/if}
             {/if}
         {/if}
 
@@ -79,5 +111,11 @@
         <div class="link">
             <p><a href="/dashboard">← Kembali ke Dashboard</a></p>
         </div>
+    </div>
+
+    <div class="notif-container">
+        {#if notify}
+            <div class="notif {notify.type}">{notify.message}</div>
+        {/if}
     </div>
 </div>
