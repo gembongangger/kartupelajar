@@ -79,7 +79,6 @@ declare module '$env/static/private' {
 	export const CONDA_PREFIX: string;
 	export const npm_config_init_module: string;
 	export const GSETTINGS_SCHEMA_DIR_CONDA_BACKUP: string;
-	export const _: string;
 	export const XAUTHORITY: string;
 	export const DESKTOP_STARTUP_ID: string;
 	export const LS_OPTIONS: string;
@@ -154,6 +153,7 @@ declare module '$env/static/private' {
 	export const GIO_LAUNCHED_DESKTOP_FILE: string;
 	export const LC_NUMERIC: string;
 	export const OLDPWD: string;
+	export const _: string;
 	export const NODE_ENV: string;
 }
 
@@ -282,7 +282,6 @@ declare module '$env/dynamic/private' {
 		CONDA_PREFIX: string;
 		npm_config_init_module: string;
 		GSETTINGS_SCHEMA_DIR_CONDA_BACKUP: string;
-		_: string;
 		XAUTHORITY: string;
 		DESKTOP_STARTUP_ID: string;
 		LS_OPTIONS: string;
@@ -357,6 +356,7 @@ declare module '$env/dynamic/private' {
 		GIO_LAUNCHED_DESKTOP_FILE: string;
 		LC_NUMERIC: string;
 		OLDPWD: string;
+		_: string;
 		NODE_ENV: string;
 		[key: `PUBLIC_${string}`]: undefined;
 		[key: `${string}`]: string | undefined;

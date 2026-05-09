@@ -3,14 +3,42 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import db from '$lib/server/db';
 
-export const load = async ({ locals }: Parameters<PageServerLoad>[0]) => {
+export const load = async ({ locals, url }: Parameters<PageServerLoad>[0]) => {
     if (!locals.user || locals.user.role !== 'admin') {
         throw redirect(302, '/');
     }
 
-    const result = await db.execute('SELECT * FROM siswa ORDER BY kelas, nama');
-    const students = result.rows;
-    return { students };
+    const q = url.searchParams.get('q') || '';
+    const page = Math.max(1, parseInt(url.searchParams.get('page') || '1'));
+    const perPage = 10;
+    const like = `%${q}%`;
+
+    const searchClause = `WHERE (nama LIKE ? OR nisn LIKE ? OR nis LIKE ? OR kelas LIKE ?)`;
+    const searchArgs = [like, like, like, like];
+
+    const countResult = await db.execute({
+        sql: `SELECT COUNT(*) as total FROM siswa ${q ? searchClause : ''}`,
+        args: q ? searchArgs : []
+    });
+    const total = Number(countResult.rows[0]?.total) || 0;
+    const totalPages = Math.ceil(total / perPage) || 1;
+    const currentPage = Math.min(page, totalPages);
+    const offset = (currentPage - 1) * perPage;
+
+    const studentArgs = q ? [...searchArgs, perPage, offset] : [perPage, offset];
+    const studentsResult = await db.execute({
+        sql: `SELECT * FROM siswa ${q ? searchClause : ''} ORDER BY kelas, nama LIMIT ? OFFSET ?`,
+        args: studentArgs
+    });
+
+    return {
+        students: studentsResult.rows,
+        total,
+        page: currentPage,
+        totalPages,
+        q,
+        perPage
+    };
 };
 
 export const actions = {

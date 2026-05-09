@@ -2,108 +2,114 @@ import { browser } from '$app/environment';
 
 let segmenter: any = null;
 let loadPromise: Promise<void> | null = null;
-
-const WASM_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm';
-const MODEL_URL = 'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite';
+let _isLoading = false;
 
 export function supportsMediaPipe(): boolean {
-	return browser && typeof document !== 'undefined' && typeof HTMLCanvasElement !== 'undefined';
+	if (!browser) return false;
+	try {
+		const c = document.createElement('canvas');
+		return !!c.getContext('2d');
+	} catch { return false; }
 }
 
 export function isLoading(): boolean {
-	return loadPromise !== null && segmenter === null;
+	return _isLoading;
 }
 
-async function loadSegmenter(): Promise<void> {
-	if (segmenter) return;
+async function getSegmenter(): Promise<any> {
+	if (segmenter) return segmenter;
 	if (loadPromise) return loadPromise;
 
+	_isLoading = true;
 	loadPromise = (async () => {
-		const { ImageSegmenter, FilesetResolver } = await import('@mediapipe/tasks-vision');
+		try {
+			await import('@mediapipe/selfie_segmentation');
+			const SelfieSegmentation = (window as any).SelfieSegmentation;
+			if (!SelfieSegmentation) throw new Error('Library gagal dimuat');
 
-		const wasmFileset = await FilesetResolver.forVisionTasks(WASM_URL);
+			segmenter = new SelfieSegmentation({
+				locateFile: (file: string) =>
+					`https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
+			});
 
-		segmenter = await ImageSegmenter.createFromOptions(wasmFileset, {
-			baseOptions: {
-				modelAssetPath: MODEL_URL,
-				delegate: 'GPU'
-			},
-			runningMode: 'IMAGE',
-			outputCategoryMask: true,
-			outputConfidenceMasks: false
-		});
+			segmenter.setOptions({ modelSelection: 1 });
+			await segmenter.initialize();
+		} finally {
+			_isLoading = false;
+		}
 	})();
 
 	await loadPromise;
+	return segmenter;
+}
+
+function getMask(seg: any, canvas: HTMLCanvasElement): Promise<ImageBitmap> {
+	return new Promise((resolve) => {
+		seg.onResults((results: any) => {
+			resolve(results.segmentationMask as ImageBitmap);
+		});
+		seg.send({ image: canvas });
+	});
 }
 
 export async function replaceBackground(
 	file: File,
 	bgColor: string = '#FF0000'
 ): Promise<Blob> {
-	if (!browser) throw new Error('Cannot process image on server');
+	if (!browser) throw new Error('Cannot process on server');
 
-	await loadSegmenter();
+	const seg = await getSegmenter();
 
 	const img = await createImageBitmap(file);
 
-	const maxSize = 500;
-	let w = img.width;
-	let h = img.height;
-	if (w > maxSize || h > maxSize) {
-		const ratio = maxSize / Math.max(w, h);
-		w = Math.round(w * ratio);
-		h = Math.round(h * ratio);
-	}
+	const cropSize = Math.min(img.width, img.height);
+	const sx = Math.floor((img.width - cropSize) / 2);
+	const sy = Math.floor((img.height - cropSize) / 2);
+	const outSize = 400;
 
 	const inputCanvas = document.createElement('canvas');
-	inputCanvas.width = w;
-	inputCanvas.height = h;
+	inputCanvas.width = outSize;
+	inputCanvas.height = outSize;
 	const inputCtx = inputCanvas.getContext('2d')!;
-	inputCtx.drawImage(img, 0, 0, w, h);
+	inputCtx.drawImage(img, sx, sy, cropSize, cropSize, 0, 0, outSize, outSize);
 	img.close();
 
-	const result = segmenter.segment(inputCanvas);
-	const mask = result.categoryMask!;
-	const rawMask = mask.getAsUint8Array();
+	const mask = await getMask(seg, inputCanvas);
+
+	const tR = parseInt(bgColor.slice(1, 3), 16);
+	const tG = parseInt(bgColor.slice(3, 5), 16);
+	const tB = parseInt(bgColor.slice(5, 7), 16);
 
 	const maskCanvas = document.createElement('canvas');
-	maskCanvas.width = mask.width;
-	maskCanvas.height = mask.height;
+	maskCanvas.width = outSize;
+	maskCanvas.height = outSize;
 	const maskCtx = maskCanvas.getContext('2d')!;
-	const maskImgData = maskCtx.createImageData(mask.width, mask.height);
-	const maskPixels = maskImgData.data;
-	for (let i = 0; i < rawMask.length; i++) {
-		const v = rawMask[i] * 255;
-		maskPixels[i * 4] = v;
-		maskPixels[i * 4 + 1] = v;
-		maskPixels[i * 4 + 2] = v;
-		maskPixels[i * 4 + 3] = 255;
-	}
-	maskCtx.putImageData(maskImgData, 0, 0);
+	maskCtx.drawImage(mask, 0, 0, outSize, outSize);
 
 	const personCanvas = document.createElement('canvas');
-	personCanvas.width = w;
-	personCanvas.height = h;
+	personCanvas.width = outSize;
+	personCanvas.height = outSize;
 	const personCtx = personCanvas.getContext('2d')!;
 	personCtx.drawImage(inputCanvas, 0, 0);
 	personCtx.globalCompositeOperation = 'destination-in';
 	personCtx.imageSmoothingEnabled = true;
-	personCtx.drawImage(maskCanvas, 0, 0, w, h);
+	personCtx.drawImage(maskCanvas, 0, 0);
+
+	if ('close' in mask) (mask as any).close();
 
 	const outputCanvas = document.createElement('canvas');
-	outputCanvas.width = w;
-	outputCanvas.height = h;
+	outputCanvas.width = outSize;
+	outputCanvas.height = outSize;
 	const outputCtx = outputCanvas.getContext('2d')!;
 	outputCtx.fillStyle = bgColor;
-	outputCtx.fillRect(0, 0, w, h);
+	outputCtx.fillRect(0, 0, outSize, outSize);
 	outputCtx.drawImage(personCanvas, 0, 0);
 
 	return new Promise((resolve) => {
 		outputCanvas.toBlob(
 			(blob) => resolve(blob!),
 			'image/jpeg',
-			0.8
+			0.85
 		);
 	});
 }

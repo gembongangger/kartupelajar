@@ -1,11 +1,11 @@
 <script lang="ts">
     import { enhance } from '$app/forms';
-    import { replaceBackground, supportsMediaPipe, isLoading as modelLoading } from '$lib/client/processPhoto';
+    import { replaceBackground, supportsMediaPipe } from '$lib/client/processPhoto';
     let { data } = $props();
     let siswa = $derived(data.siswa);
 
     let submittingFoto = $state(false);
-    let modelLoadingState = $state(false);
+    let modelLoad = $state(false);
     let notify: { type: 'success' | 'error'; message: string } | null = $state(null);
 
     async function handleUpload({ formData }: { formElement: HTMLFormElement; formData: FormData }) {
@@ -19,14 +19,14 @@
         }
 
         submittingFoto = true;
-        modelLoadingState = true;
+        modelLoad = true;
 
         try {
-            modelLoadingState = false;
             const processed = await replaceBackground(file, '#FF0000');
+            modelLoad = false;
             formData.set('foto', processed, file.name);
         } catch (e: any) {
-            notify = { type: 'error', message: 'Gagal proses background: ' + (e.message || '') };
+            notify = { type: 'error', message: 'Gagal proses foto: ' + (e.message || '') };
             setTimeout(() => { notify = null; }, 4000);
             submittingFoto = false;
             return;
@@ -177,7 +177,7 @@
         <input type="file" name="foto" id="foto" accept=".jpg" required>
         <button type="submit" disabled={submittingFoto}>
             {#if submittingFoto}
-                {modelLoadingState ? '⏳ Memuat model AI...' : '✂️ Memproses foto...'}
+                {modelLoad ? '⏳ Mendownload model AI...' : '✂️ Memproses foto...'}
             {:else}
                 Upload Foto
             {/if}

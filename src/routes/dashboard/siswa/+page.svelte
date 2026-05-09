@@ -1,32 +1,30 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
 	let { data } = $props();
 
-	let search = $state('');
-	let currentPage = $state(1);
-	const perPage = 50;
+	let search = $state(data.q || '');
+	let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
-	let filtered = $derived.by(() => {
-		const q = search.toLowerCase().trim();
-		if (!q) return data.students;
-		return data.students.filter((s: any) =>
-			String(s.nama).toLowerCase().includes(q) ||
-			String(s.nisn).toLowerCase().includes(q) ||
-			String(s.nis).toLowerCase().includes(q) ||
-			String(s.kelas).toLowerCase().includes(q)
-		);
-	});
-
-	let totalPages = $derived(Math.ceil(filtered.length / perPage) || 1);
-	let paged = $derived(filtered.slice((currentPage - 1) * perPage, currentPage * perPage));
-
-	function goPage(p: number) {
-		if (p >= 1 && p <= totalPages) currentPage = p;
+	function onSearchInput(e: Event) {
+		const val = (e.target as HTMLInputElement).value;
+		search = val;
+		clearTimeout(debounceTimer);
+		debounceTimer = setTimeout(() => {
+			const params = new URLSearchParams();
+			if (val) params.set('q', val);
+			params.set('page', '1');
+			goto(`?${params}`, { replaceState: true, keepFocus: true });
+		}, 400);
 	}
 
-	$effect(() => {
-		if (currentPage > totalPages) currentPage = totalPages;
-	});
+	function goPage(p: number) {
+		if (p < 1 || p > data.totalPages) return;
+		const params = new URLSearchParams();
+		if (data.q) params.set('q', data.q);
+		params.set('page', String(p));
+		goto(`?${params}`, { replaceState: true, keepFocus: true });
+	}
 </script>
 
 <style>
@@ -38,6 +36,10 @@
 	.search-bar {
 		width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc;
 		border-radius: 6px; box-sizing: border-box; margin-bottom: 6px;
+	}
+
+	.search-info {
+		margin: 4px 0; font-size: 14px; color: #666;
 	}
 
 	.button {
@@ -78,11 +80,11 @@
 	<h2>Daftar Siswa</h2>
 
 	<input class="search-bar" type="text" placeholder="Cari nama, NISN, NIS, atau kelas..."
-		bind:value={search} oninput={() => { currentPage = 1; }}>
+		value={search} oninput={onSearchInput}>
 
-	<p style="margin:4px 0;font-size:14px;color:#666;">
-		Menampilkan {filtered.length} siswa
-		{#if search}(hasil pencarian){/if}
+	<p class="search-info">
+		Menampilkan {data.total} siswa
+		{#if data.q}(hasil pencarian "{data.q}"){/if}
 	</p>
 
 	<table>
@@ -99,9 +101,9 @@
 			</tr>
 		</thead>
 		<tbody>
-			{#each paged as row, i}
+			{#each data.students as row, i}
 				<tr>
-					<td data-label="No">{(currentPage - 1) * perPage + i + 1}</td>
+					<td data-label="No">{(data.page - 1) * data.perPage + i + 1}</td>
 					<td data-label="NIS">{row.nis}</td>
 					<td data-label="NISN">{row.nisn}</td>
 					<td data-label="Nama">{row.nama}</td>
@@ -119,19 +121,22 @@
 					</td>
 				</tr>
 			{/each}
+			{#if data.students.length === 0}
+				<tr><td colspan="8" style="text-align:center;color:#999;padding:24px;">Tidak ada siswa ditemukan</td></tr>
+			{/if}
 		</tbody>
 	</table>
 
 	<div class="pagination">
-		<button disabled={currentPage <= 1} onclick={() => goPage(currentPage - 1)}>‹ Prev</button>
-		{#each Array.from({ length: Math.min(totalPages, 9) }, (_, i) => {
-			const start = Math.max(1, Math.min(currentPage - 4, totalPages - 8));
+		<button disabled={data.page <= 1} onclick={() => goPage(data.page - 1)}>‹ Prev</button>
+		{#each Array.from({ length: Math.min(data.totalPages, 9) }, (_, i) => {
+			const start = Math.max(1, Math.min(data.page - 4, data.totalPages - 8));
 			return start + i;
 		}) as p}
-			<button class:active={p === currentPage} onclick={() => goPage(p)}>{p}</button>
+			<button class:active={p === data.page} onclick={() => goPage(p)}>{p}</button>
 		{/each}
-		<button disabled={currentPage >= totalPages} onclick={() => goPage(currentPage + 1)}>Next ›</button>
-		<span class="info">Halaman {currentPage} dari {totalPages}</span>
+		<button disabled={data.page >= data.totalPages} onclick={() => goPage(data.page + 1)}>Next ›</button>
+		<span class="info">Halaman {data.page} dari {data.totalPages}</span>
 	</div>
 
 	<a href="/dashboard" class="back-link">← Kembali ke Dashboard</a>

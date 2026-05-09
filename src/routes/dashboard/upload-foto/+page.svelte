@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { replaceBackground, supportsMediaPipe, isLoading as modelLoading } from '$lib/client/processPhoto';
+	import { replaceBackground, supportsMediaPipe, isLoading } from '$lib/client/processPhoto';
 	let { form } = $props();
 
 	let files: FileList | null = null;
 	let processing = $state(false);
+	let modelLoad = $state(false);
 	let progress = $state({ current: 0, total: 0 });
-	let modelLoadingState = $state(false);
 	let errorMsg = $state('');
 	let notify: { type: 'success' | 'error'; message: string } | null = $state(null);
 
@@ -19,6 +19,7 @@
 		}
 
 		processing = true;
+		modelLoad = true;
 		errorMsg = '';
 		notify = null;
 		progress = { current: 0, total: files.length };
@@ -26,10 +27,8 @@
 		const formData = new FormData();
 
 		try {
-			modelLoadingState = true;
 			for (let i = 0; i < files.length; i++) {
 				progress = { current: i + 1, total: files.length };
-				modelLoadingState = false;
 
 				const file = files[i];
 				if (file.size === 0) continue;
@@ -47,17 +46,17 @@
 					formData.append('fotos', file);
 				}
 			}
-		} catch (e: any) {
-			errorMsg = 'Gagal memproses foto: ' + (e.message || 'unknown error');
-			processing = false;
-			modelLoadingState = false;
-			return;
-		}
+			} catch (e: any) {
+				errorMsg = 'Gagal memproses foto: ' + (e.message || 'unknown error');
+				processing = false;
+				modelLoad = false;
+				return;
+			}
 
-		return async ({ result }: { result: any }) => {
-			processing = false;
-			modelLoadingState = false;
-			progress = { current: 0, total: 0 };
+			return async ({ result }: { result: any }) => {
+				processing = false;
+				modelLoad = false;
+				progress = { current: 0, total: 0 };
 			if (result.type === 'success' && result.data) {
 				const d = result.data;
 				notify = { type: 'success', message: `✅ Berhasil: ${d.berhasil}, ❌ Gagal: ${d.gagal}` };
@@ -129,7 +128,11 @@
 			<div class="progress-fill" style="width: {progress.total > 0 ? (progress.current / progress.total) * 100 : 0}%"></div>
 		</div>
 		<p style="text-align:center;color:#666;">
-			{modelLoadingState ? '⏳ Memuat model AI...' : '✂️ Menghapus background foto ' + progress.current + '/' + progress.total}
+			{#if modelLoad && progress.current === 1}
+				⏳ Mendownload model AI (40MB, hanya sekali)...
+			{:else}
+				✂️ Memproses foto {progress.current}/{progress.total}
+			{/if}
 		</p>
 	{/if}
 
